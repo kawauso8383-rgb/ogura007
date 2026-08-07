@@ -3,12 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- ホーム画面追加時の名前を「⛽️小倉SS」に変更 -->
   <title>⛽️小倉SS</title>
-  
-  <!-- Webクリップアイコン用タグ（任意：icon.png を置くとアイコン画像も変わります） -->
-  <link rel="apple-touch-icon" href="icon.png">
-  
+  <link rel="apple-touch-icon" href="https://kawauso8383-rgb.github.io/icon/icon.png.jpg?v=5">
   <style>
     :root {
       --primary-color: #10b981;
@@ -85,7 +81,7 @@
       <div class="card">
         <div class="card-title">朝の在庫 (kL)</div>
         <div class="form-group"><label>ハイオク</label><input type="number" step="any" id="stock_hiok" class="nav-input" enterkeyhint="next"></div>
-        <div class="form-group"><label>レギュラー①</label><input type="number" step="any" id="stock_reg1" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>レギュラー</label><input type="number" step="any" id="stock_reg" class="nav-input" enterkeyhint="next"></div>
         <div class="form-group"><label>軽油</label><input type="number" step="any" id="stock_keiyu" class="nav-input" enterkeyhint="next"></div>
         <div class="form-group"><label>灯油</label><input type="number" step="any" id="stock_toyu" class="nav-input" enterkeyhint="next"></div>
       </div>
@@ -131,14 +127,14 @@
         <div class="form-group"><label>洗車 (台)</label><input type="number" id="cum_wash" class="nav-input cum-calc" enterkeyhint="next"></div>
         <div style="margin-top: 8px;">
           <label style="font-size: 0.85rem; font-weight: 600;">その他手打ち (コーティングなど)</label>
-          <input type="text" class="full-width-input nav-input" placeholder="例：コーティング：2台" id="other_manual" enterkeyhint="next">
+          <input type="text" class="full-width-input nav-input" placeholder="例：キーパー    4台" id="other_manual" enterkeyhint="next">
         </div>
       </div>
 
       <div class="card">
         <div class="card-title">15時在庫 (kL)</div>
         <div class="form-group"><label>在庫ハイオク</label><input type="number" step="any" id="stock15_hiok" class="nav-input" enterkeyhint="next"></div>
-        <div class="form-group"><label>在庫レギュラー①</label><input type="number" step="any" id="stock15_reg1" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>在庫レギュラー</label><input type="number" step="any" id="stock15_reg" class="nav-input" enterkeyhint="next"></div>
         <div class="form-group"><label>在庫軽油</label><input type="number" step="any" id="stock15_keiyu" class="nav-input" enterkeyhint="next"></div>
         <div class="form-group"><label>在庫灯油</label><input type="number" step="any" id="stock15_toyu" class="nav-input" enterkeyhint="next"></div>
       </div>
@@ -208,7 +204,7 @@
   </div>
 
   <script>
-    // ★★★【ここに小倉SS用のWebアプリURLを貼り付けてください】★★★
+    // ★小倉SS用 GASデプロイURL設定済み
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwLcSjTBxXsCXPOCCk4A2tSytHA0mStHn49va_7pP_gPQXHEvmxPkuBd5_hRnglW5VomQ/exec";
 
     let currentTab = '8h';
@@ -233,10 +229,10 @@
 
       if (!res) return;
       if (res.prev) {
-        document.getElementById("prev_hiok").value = res.prev.hiok || 0;
-        document.getElementById("prev_reg").value = res.prev.reg || 0;
-        document.getElementById("prev_keiyu").value = res.prev.keiyu || 0;
-        document.getElementById("prev_toyu").value = res.prev.toyu || 0;
+        document.getElementById("prev_hiok").value = (parseFloat(res.prev.hiok) || 0).toFixed(1);
+        document.getElementById("prev_reg").value = (parseFloat(res.prev.reg) || 0).toFixed(1);
+        document.getElementById("prev_keiyu").value = (parseFloat(res.prev.keiyu) || 0).toFixed(1);
+        document.getElementById("prev_toyu").value = (parseFloat(res.prev.toyu) || 0).toFixed(1);
       }
       if (res.thisYear) {
         baseThisYear = {
@@ -246,16 +242,16 @@
           oil: parseInt(res.thisYear.oil) || 0,
           wash: parseInt(res.thisYear.wash) || 0
         };
-        document.getElementById("ty_gas").value = res.thisYear.gas || 0;
-        document.getElementById("ty_keiyu").value = res.thisYear.keiyu || 0;
-        document.getElementById("ty_toyu").value = res.thisYear.toyu || 0;
-        document.getElementById("ty_oil").value = res.thisYear.oil || 0;
-        document.getElementById("ty_wash").value = res.thisYear.wash || 0;
+        document.getElementById("ty_gas").value = baseThisYear.gas.toFixed(1);
+        document.getElementById("ty_keiyu").value = baseThisYear.keiyu.toFixed(1);
+        document.getElementById("ty_toyu").value = baseThisYear.toyu.toFixed(1);
+        document.getElementById("ty_oil").value = baseThisYear.oil;
+        document.getElementById("ty_wash").value = baseThisYear.wash;
       }
       if (res.lastYear) {
-        document.getElementById("ly_gas").value = res.lastYear.gas || 0;
-        document.getElementById("ly_keiyu").value = res.lastYear.keiyu || 0;
-        document.getElementById("ly_toyu").value = res.lastYear.toyu || 0;
+        document.getElementById("ly_gas").value = (parseFloat(res.lastYear.gas) || 0).toFixed(1);
+        document.getElementById("ly_keiyu").value = (parseFloat(res.lastYear.keiyu) || 0).toFixed(1);
+        document.getElementById("ly_toyu").value = (parseFloat(res.lastYear.toyu) || 0).toFixed(1);
         document.getElementById("ly_oil").value = res.lastYear.oil || 0;
         document.getElementById("ly_wash").value = res.lastYear.wash || 0;
       }
@@ -296,11 +292,11 @@
       const todayOil = parseInt(v('cum_oil')) || 0;
       const todayWash = parseInt(v('cum_wash')) || 0;
 
-      document.getElementById("ty_gas").value = (Math.round((baseThisYear.gas + todayGas) * 10) / 10) || 0;
-      document.getElementById("ty_keiyu").value = (Math.round((baseThisYear.keiyu + todayKeiyu) * 10) / 10) || 0;
-      document.getElementById("ty_toyu").value = (Math.round((baseThisYear.toyu + todayToyu) * 10) / 10) || 0;
-      document.getElementById("ty_oil").value = (baseThisYear.oil + todayOil) || 0;
-      document.getElementById("ty_wash").value = (baseThisYear.wash + todayWash) || 0;
+      document.getElementById("ty_gas").value = (baseThisYear.gas + todayGas).toFixed(1);
+      document.getElementById("ty_keiyu").value = (baseThisYear.keiyu + todayKeiyu).toFixed(1);
+      document.getElementById("ty_toyu").value = (baseThisYear.toyu + todayToyu).toFixed(1);
+      document.getElementById("ty_oil").value = baseThisYear.oil + todayOil;
+      document.getElementById("ty_wash").value = baseThisYear.wash + todayWash;
     }
 
     document.querySelectorAll('.cum-calc').forEach(el => {
@@ -348,20 +344,29 @@
 
     document.getElementById("reportForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      if (GAS_URL.includes("YOUR_GAS_SCRIPT_ID")) {
-        alert("エラー: GASのURLが設定されていません。");
-        return;
-      }
 
       const overlay = document.getElementById("loadingOverlay");
       const submitBtn = document.getElementById("submitBtn");
 
-      const reportTypeName = currentTab === '8h' ? "8時報告" : (currentTab === 'month' ? "15時月末報告" : "15時報告");
+      let reportTypeName = "15時報告";
+      if (currentTab === '8h') {
+        reportTypeName = "8時報告";
+      } else if (currentTab === 'month') {
+        reportTypeName = "15時月末報告";
+      }
 
-      const prevHiok = document.getElementById("prev_hiok").value === '...' ? '0' : document.getElementById("prev_hiok").value;
-      const prevReg = document.getElementById("prev_reg").value === '...' ? '0' : document.getElementById("prev_reg").value;
-      const prevKeiyu = document.getElementById("prev_keiyu").value === '...' ? '0' : document.getElementById("prev_keiyu").value;
-      const prevToyu = document.getElementById("prev_toyu").value === '...' ? '0' : document.getElementById("prev_toyu").value;
+      // ★店舗名ヘッダーの取得
+      const storeName = document.getElementById("store-label").textContent;
+
+      const fmt = (id) => {
+        const val = parseFloat(v(id));
+        return isNaN(val) ? "0.0" : val.toFixed(1);
+      };
+
+      const prevHiok = document.getElementById("prev_hiok").value === '...' ? '0.0' : (parseFloat(document.getElementById("prev_hiok").value) || 0).toFixed(1);
+      const prevReg = document.getElementById("prev_reg").value === '...' ? '0.0' : (parseFloat(document.getElementById("prev_reg").value) || 0).toFixed(1);
+      const prevKeiyu = document.getElementById("prev_keiyu").value === '...' ? '0.0' : (parseFloat(document.getElementById("prev_keiyu").value) || 0).toFixed(1);
+      const prevToyu = document.getElementById("prev_toyu").value === '...' ? '0.0' : (parseFloat(document.getElementById("prev_toyu").value) || 0).toFixed(1);
 
       const rawOther = document.getElementById("other_manual").value.trim();
       const rawMemo = document.getElementById("memo").value.trim();
@@ -374,13 +379,17 @@
 
       const payload = {
         reportType: reportTypeName,
-        stock_hiok: v('stock_hiok'), stock_reg1: v('stock_reg1'), stock_keiyu: v('stock_keiyu'), stock_toyu: v('stock_toyu'),
+        stock_hiok: v('stock_hiok'), 
+        stock_reg1: v('stock_reg'),
+        stock_keiyu: v('stock_keiyu'), stock_toyu: v('stock_toyu'),
         m_sales_hiok: v('m_sales_hiok'), m_sales_reg: v('m_sales_reg'), m_sales_keiyu: v('m_sales_keiyu'), m_sales_toyu: v('m_sales_toyu'),
         today_lorry_status: todayLorryVal,
         prev_hiok: prevHiok, prev_reg: prevReg, prev_keiyu: prevKeiyu, prev_toyu: prevToyu,
         cum_hiok: v('cum_hiok'), cum_reg: v('cum_reg'), cum_keiyu: v('cum_keiyu'), cum_toyu: v('cum_toyu'),
         cum_oil: v('cum_oil'), cum_wash: v('cum_wash'), other_manual: rawOther,
-        stock15_hiok: v('stock15_hiok'), stock15_reg1: v('stock15_reg1'), stock15_keiyu: v('stock15_keiyu'), stock15_toyu: v('stock15_toyu'),
+        stock15_hiok: v('stock15_hiok'), 
+        stock15_reg1: v('stock15_reg'),
+        stock15_keiyu: v('stock15_keiyu'), stock15_toyu: v('stock15_toyu'),
         lorry_am_h: v('lorry_am_h'), lorry_am_r: v('lorry_am_r'), lorry_am_d: v('lorry_am_d'), lorry_am_k: v('lorry_am_k'),
         lorry_pm_h: v('lorry_pm_h'), lorry_pm_r: v('lorry_pm_r'), lorry_pm_d: v('lorry_pm_d'), lorry_pm_k: v('lorry_pm_k'),
         tom_lorry_status: tomLorryVal, memo: rawMemo
@@ -403,90 +412,66 @@
         lorryText = "なし";
       }
 
-      const otherPart = (rawOther !== "" && rawOther !== "0") ? `${rawOther}\n` : "";
-      const memoPart = (rawMemo !== "" && rawMemo !== "0") ? `\nメモ：${rawMemo}` : "";
+      const memoPart = (rawMemo !== "" && rawMemo !== "0") ? `\n\nメモ：\n${rawMemo}` : "";
+
+      let salesText = `ハイオク・・・：${fmt('cum_hiok')}
+レギュラー・・：${fmt('cum_reg')}
+軽油・・・・・：${fmt('cum_keiyu')}
+灯油・・・・・：${fmt('cum_toyu')}
+オイル・・・・：${v('cum_oil')} 台
+洗車・・・・・：${v('cum_wash')} 台`;
+
+      if (rawOther !== "" && rawOther !== "0") {
+        salesText += `\n${rawOther}`;
+      }
+
+      const stockText = `在庫ハイオク・：${fmt('stock15_hiok')}
+在庫レギュラー：${fmt('stock15_reg')}
+在庫軽油・・・：${fmt('stock15_keiyu')}
+在庫灯油・・・：${fmt('stock15_toyu')}`;
 
       let lineText = "";
       if (currentTab === '8h') {
         lineText = 
-`在庫ハイオク・：${v('stock_hiok')}
-在庫レギュラー：${v('stock_reg1')}
-在庫軽油・・・：${v('stock_keiyu')}
-在庫灯油・・・：${v('stock_toyu')}
+`${storeName}
+
+在庫ハイオク・：${fmt('stock_hiok')}
+在庫レギュラー：${fmt('stock_reg')}
+在庫軽油・・・：${fmt('stock_keiyu')}
+在庫灯油・・・：${fmt('stock_toyu')}
 
 昨日ハイオク・：${prevHiok}
 昨日レギュラー：${prevReg}
 昨日軽油・・・：${prevKeiyu}
 昨日灯油・・・：${prevToyu}
 
-朝のハイオク・：${v('m_sales_hiok')}
-朝のレギュラー：${v('m_sales_reg')}
-朝の軽油・・・：${v('m_sales_keiyu')}
-朝の灯油・・・：${v('m_sales_toyu')}
+朝のハイオク・：${fmt('m_sales_hiok')}
+朝のレギュラー：${fmt('m_sales_reg')}
+朝の軽油・・・：${fmt('m_sales_keiyu')}
+朝の灯油・・・：${fmt('m_sales_toyu')}
 
 ${todayLorryVal}`;
 
       } else if (currentTab === '15h') {
-        lineText = 
-`ハイオク・・・：${v('cum_hiok')}
-レギュラー・・：${v('cum_reg')}
-軽油・・・・・：${v('cum_keiyu')}
-灯油・・・・・：${v('cum_toyu')}
-オイル・・・・：${v('cum_oil')} 台
-洗車・・・・・：${v('cum_wash')} 台
-${otherPart}在庫ハイオク・：${v('stock15_hiok')}
-在庫レギュラー：${v('stock15_reg1')}
-在庫軽油・・・：${v('stock15_keiyu')}
-在庫灯油・・・：${v('stock15_toyu')}
-
-明日のローリー
-${lorryText}
-
-${tomLorryVal}${memoPart}`;
+        lineText = `${storeName}\n\n${salesText}\n\n${stockText}\n\n明日のローリー\n${lorryText}\n\n${tomLorryVal}${memoPart}`;
 
       } else {
-        const tyGas = document.getElementById("ty_gas").value || '0';
-        const tyKeiyu = document.getElementById("ty_keiyu").value || '0';
-        const tyToyu = document.getElementById("ty_toyu").value || '0';
+        const tyGas = (parseFloat(document.getElementById("ty_gas").value) || 0).toFixed(1);
+        const tyKeiyu = (parseFloat(document.getElementById("ty_keiyu").value) || 0).toFixed(1);
+        const tyToyu = (parseFloat(document.getElementById("ty_toyu").value) || 0).toFixed(1);
         const tyOil = document.getElementById("ty_oil").value || '0';
         const tyWash = document.getElementById("ty_wash").value || '0';
 
-        const lyGas = document.getElementById("ly_gas").value || '0';
-        const lyKeiyu = document.getElementById("ly_keiyu").value || '0';
-        const lyToyu = document.getElementById("ly_toyu").value || '0';
+        const lyGas = (parseFloat(document.getElementById("ly_gas").value) || 0).toFixed(1);
+        const lyKeiyu = (parseFloat(document.getElementById("ly_keiyu").value) || 0).toFixed(1);
+        const lyToyu = (parseFloat(document.getElementById("ly_toyu").value) || 0).toFixed(1);
         const lyOil = document.getElementById("ly_oil").value || '0';
         const lyWash = document.getElementById("ly_wash").value || '0';
 
-        lineText = 
-`ハイオク・・・：${v('cum_hiok')}
-レギュラー・・：${v('cum_reg')}
-軽油・・・・・：${v('cum_keiyu')}
-灯油・・・・・：${v('cum_toyu')}
-オイル・・・・：${v('cum_oil')} 台
-洗車・・・・・：${v('cum_wash')} 台
-${otherPart}在庫ハイオク・：${v('stock15_hiok')}
-在庫レギュラー：${v('stock15_reg1')}
-在庫軽油・・・：${v('stock15_keiyu')}
-在庫灯油・・・：${v('stock15_toyu')}
+        const tyText = `今年の累計\nガソリン・・：${tyGas}\n軽油・・・・：${tyKeiyu}\n灯油・・・・：${tyToyu}\nオイル・・・：${tyOil} 台\n洗車・・・・：${tyWash} 台`;
+        const lyText = `去年の累計\nガソリン・・：${lyGas}\n軽油・・・・：${lyKeiyu}\n灯油・・・・：${lyToyu}\nオイル・・・：${lyOil} 台\n洗車・・・・：${lyWash} 台`;
 
-今年の累計
-ガソリン・・：${tyGas}
-軽油・・・・：${tyKeiyu}
-灯油・・・・：${tyToyu}
-オイル・・・：${tyOil} 台
-洗車・・・・：${tyWash} 台
-
-去年の累計
-ガソリン・・：${lyGas}
-軽油・・・・：${lyKeiyu}
-灯油・・・・：${lyToyu}
-オイル・・・：${lyOil} 台
-洗車・・・・：${lyWash} 台
-
-明日のローリー
-${lorryText}
-
-${tomLorryVal}${memoPart}`;
+        lineText = `${storeName}\n\n${salesText}\n\n${stockText}\n\n${tyText}\n\n${lyText}\n\n明日のローリー\n${lorryText}\n\n${tomLorryVal}${memoPart}`;
       }
 
       overlay.style.display = "flex";
