@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- ホーム画面追加時の名前を「⛽️小倉SS」に変更 -->
+  <title>⛽️小倉SS</title>
+  
+  <!-- Webクリップアイコン用タグ（任意：icon.png を置くとアイコン画像も変わります） -->
+  <link rel="apple-touch-icon" href="icon.png">
+  
+  <style>
+    :root {
+      --primary-color: #10b981;
+      --bg-color: #f3f4f6;
+      --card-bg: #ffffff;
+      --text-main: #1f2937;
+      --text-sub: #6b7280;
+      --border-color: #e5e7eb;
+      --read-only-bg: #f0f0f0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px 12px 40px 12px; max-width: 480px; margin: 0 auto; }
+    
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .header h1 { font-size: 1.25rem; font-weight: 700; }
+    .reload-btn { padding: 6px 14px; background-color: #ffffff; border: 1px solid #10b981; border-radius: 20px; font-size: 0.8rem; font-weight: 700; color: #10b981; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .reload-btn:active { background-color: #10b981; color: white; }
+
+    .tab-container { display: flex; background-color: #e5e7eb; padding: 4px; border-radius: 14px; margin-bottom: 16px; gap: 2px; }
+    .tab-button { flex: 1; padding: 10px 0; border: none; background: none; font-size: 0.85rem; font-weight: 700; color: #6b7280; border-radius: 10px; cursor: pointer; }
+    .tab-button.active { background-color: #ffffff; color: var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card { background-color: var(--card-bg); border-radius: 16px; padding: 18px 16px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .card-title { font-size: 1.05rem; font-weight: 700; color: #111827; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 2.5px solid var(--primary-color); }
+    .card-subtext { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 12px; }
+    .form-group { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .form-group label { font-weight: 600; font-size: 0.95rem; color: #1f2937; }
+    
+    input, select, textarea { font-size: 16px !important; }
+    
+    .form-group input, .form-group select { width: 140px; height: 42px; background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 10px; padding: 0 12px; font-weight: 500; text-align: right; outline: none; -webkit-appearance: none; -moz-appearance: textfield; }
+    .form-group input::-webkit-outer-spin-button, .form-group input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .form-group input.readonly { background-color: var(--read-only-bg); border-color: #e5e7eb; color: #111827; font-weight: 700; }
+    .full-width-select, .full-width-input, .full-width-textarea { width: 100%; height: 44px; background-color: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 10px; padding: 0 12px; font-weight: 500; color: #1f2937; outline: none; margin-top: 6px; }
+    .full-width-textarea { height: 70px; padding: 10px 12px; resize: none; }
+    .lorry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .lorry-item { display: flex; align-items: center; justify-content: space-between; }
+    .lorry-item label { font-size: 0.85rem; font-weight: 600; }
+    .lorry-item input { width: 70px; height: 40px; border-radius: 8px; border: 1px solid #d1d5db; text-align: center; }
+    .section-subtitle { font-size: 0.9rem; font-weight: 700; color: var(--primary-color); margin: 10px 0 6px 0; }
+    .submit-btn { width: 100%; padding: 16px; background-color: #06c755; color: white; border: none; border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(6, 199, 85, 0.3); }
+    .submit-btn:disabled { background-color: #9ca3af; box-shadow: none; cursor: not-allowed; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; flex-direction: column; color: white; font-weight: bold; z-index: 1000; }
+    .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-top: 4px solid #ffffff; border-radius: 50%; width: 36px; height: 36px; animation: spin 1s linear infinite; margin-bottom: 12px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>⛽️ SS業務報告アプリ</h1>
+    <button type="button" class="reload-btn" id="reloadBtn" onclick="loadLatestData()">🔄 最新に更新</button>
+  </div>
+
+  <div class="tab-container">
+    <button class="tab-button active" id="tab-8h" type="button" onclick="switchTab('8h')">☀️ 8時報告</button>
+    <button class="tab-button" id="tab-15h" type="button" onclick="switchTab('15h')">🌙 15時報告</button>
+    <button class="tab-button" id="tab-month" type="button" onclick="switchTab('month')">📅 15時月末</button>
+  </div>
+
+  <div class="card" style="padding: 12px 16px;">
+    <div class="form-group" style="margin-bottom: 0;">
+      <label>対象店舗</label>
+      <select class="form-group input" style="width: 160px; text-align: center; background-color: #f3f4f6;" disabled>
+        <option id="store-label">小倉SS</option>
+      </select>
+    </div>
+  </div>
+
+  <form id="reportForm">
+    <!-- ☀️ 8時報告用 -->
+    <div id="section-8h">
+      <div class="card">
+        <div class="card-title">朝の在庫 (kL)</div>
+        <div class="form-group"><label>ハイオク</label><input type="number" step="any" id="stock_hiok" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>レギュラー①</label><input type="number" step="any" id="stock_reg1" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>軽油</label><input type="number" step="any" id="stock_keiyu" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>灯油</label><input type="number" step="any" id="stock_toyu" class="nav-input" enterkeyhint="next"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">前日販売数量 (自動読み込み)</div>
+        <div class="card-subtext">※前日15時報告シートから自動取得されています</div>
+        <div class="form-group"><label>昨日ハイオク</label><input type="text" class="readonly" id="prev_hiok" readonly value="..."></div>
+        <div class="form-group"><label>昨日レギュラー</label><input type="text" class="readonly" id="prev_reg" readonly value="..."></div>
+        <div class="form-group"><label>昨日軽油</label><input type="text" class="readonly" id="prev_keiyu" readonly value="..."></div>
+        <div class="form-group"><label>昨日灯油</label><input type="text" class="readonly" id="prev_toyu" readonly value="..."></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">朝販売数量 (kL)</div>
+        <div class="form-group"><label>朝のハイオク</label><input type="number" step="any" id="m_sales_hiok" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>朝のレギュラー</label><input type="number" step="any" id="m_sales_reg" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>朝の軽油</label><input type="number" step="any" id="m_sales_keiyu" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>朝の灯油</label><input type="number" step="any" id="m_sales_toyu" class="nav-input" enterkeyhint="next"></div>
+        <div style="margin-top: 14px;">
+          <label style="font-size: 0.85rem; font-weight: 600;">本日の入庫状況プルダウン</label>
+          <select class="full-width-select nav-input" id="today_lorry_status" onchange="toggleLorryInput('today')">
+            <option value="本日のローリー入庫問題ありません。">本日のローリー入庫問題ありません。</option>
+            <option value="manual">手打ち入力 (プルダウン以外)</option>
+          </select>
+          <div id="today_lorry_manual_box" class="hidden" style="margin-top: 8px;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub);">入庫状況 (自由入力)</label>
+            <input type="text" class="full-width-input nav-input" id="today_lorry_manual" placeholder="例：本日のローリー入庫1時間遅れあり">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🌙 15時報告 / 📅 月末共通 -->
+    <div id="section-15h" class="hidden">
+      <div class="card">
+        <div class="card-title">本日の販売累計</div>
+        <div class="form-group"><label>ハイオク (kL)</label><input type="number" step="any" id="cum_hiok" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div class="form-group"><label>レギュラー (kL)</label><input type="number" step="any" id="cum_reg" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div class="form-group"><label>軽油 (kL)</label><input type="number" step="any" id="cum_keiyu" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div class="form-group"><label>灯油 (kL)</label><input type="number" step="any" id="cum_toyu" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div class="form-group"><label>オイル (台)</label><input type="number" id="cum_oil" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div class="form-group"><label>洗車 (台)</label><input type="number" id="cum_wash" class="nav-input cum-calc" enterkeyhint="next"></div>
+        <div style="margin-top: 8px;">
+          <label style="font-size: 0.85rem; font-weight: 600;">その他手打ち (コーティングなど)</label>
+          <input type="text" class="full-width-input nav-input" placeholder="例：コーティング：2台" id="other_manual" enterkeyhint="next">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">15時在庫 (kL)</div>
+        <div class="form-group"><label>在庫ハイオク</label><input type="number" step="any" id="stock15_hiok" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>在庫レギュラー①</label><input type="number" step="any" id="stock15_reg1" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>在庫軽油</label><input type="number" step="any" id="stock15_keiyu" class="nav-input" enterkeyhint="next"></div>
+        <div class="form-group"><label>在庫灯油</label><input type="number" step="any" id="stock15_toyu" class="nav-input" enterkeyhint="next"></div>
+      </div>
+
+      <div id="section-month-extra" class="hidden">
+        <div class="card">
+          <div class="card-title">今年の累計 (本日分自動加算)</div>
+          <div class="card-subtext">※シートの前日累計 ＋ 本日の販売量が自動反映されます</div>
+          <div class="form-group"><label>ガソリン</label><input type="text" class="readonly" id="ty_gas" readonly value="..."></div>
+          <div class="form-group"><label>軽油</label><input type="text" class="readonly" id="ty_keiyu" readonly value="..."></div>
+          <div class="form-group"><label>灯油</label><input type="text" class="readonly" id="ty_toyu" readonly value="..."></div>
+          <div class="form-group"><label>オイル (台)</label><input type="text" class="readonly" id="ty_oil" readonly value="..."></div>
+          <div class="form-group"><label>洗車 (台)</label><input type="text" class="readonly" id="ty_wash" readonly value="..."></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">去年の累計 (自動読み込み)</div>
+          <div class="card-subtext">※スプレッドシートの去年の実績を参照しています</div>
+          <div class="form-group"><label>ガソリン</label><input type="text" class="readonly" id="ly_gas" readonly value="..."></div>
+          <div class="form-group"><label>軽油</label><input type="text" class="readonly" id="ly_keiyu" readonly value="..."></div>
+          <div class="form-group"><label>灯油</label><input type="text" class="readonly" id="ly_toyu" readonly value="..."></div>
+          <div class="form-group"><label>オイル (台)</label><input type="text" class="readonly" id="ly_oil" readonly value="..."></div>
+          <div class="form-group"><label>洗車 (台)</label><input type="text" class="readonly" id="ly_wash" readonly value="..."></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">明日のローリー予定 (kL)</div>
+        <div class="section-subtitle">AM (午前)</div>
+        <div class="lorry-grid">
+          <div class="lorry-item"><label>H (ハイオク)</label><input type="number" step="any" id="lorry_am_h" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>R (レギュラー)</label><input type="number" step="any" id="lorry_am_r" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>D (軽油)</label><input type="number" step="any" id="lorry_am_d" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>K (灯油)</label><input type="number" step="any" id="lorry_am_k" class="nav-input" enterkeyhint="next"></div>
+        </div>
+        <div class="section-subtitle">PM (午後)</div>
+        <div class="lorry-grid">
+          <div class="lorry-item"><label>H (ハイオク)</label><input type="number" step="any" id="lorry_pm_h" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>R (レギュラー)</label><input type="number" step="any" id="lorry_pm_r" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>D (軽油)</label><input type="number" step="any" id="lorry_pm_d" class="nav-input" enterkeyhint="next"></div>
+          <div class="lorry-item"><label>K (灯油)</label><input type="number" step="any" id="lorry_pm_k" class="nav-input" enterkeyhint="next"></div>
+        </div>
+        <div style="margin-top: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600;">明日の入庫状況プルダウン</label>
+          <select class="full-width-select nav-input" id="tom_lorry_status" onchange="toggleLorryInput('tom')">
+            <option value="明日のローリー入庫問題ありません。">明日のローリー入庫問題ありません。</option>
+            <option value="manual">手打ち入力 (プルダウン以外)</option>
+          </select>
+          <div id="tom_lorry_manual_box" class="hidden" style="margin-top: 8px;">
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-sub);">明日の入庫状況 (自由入力)</label>
+            <input type="text" class="full-width-input nav-input" id="tom_lorry_manual" placeholder="例：明日ローリー遅延予定あり">
+          </div>
+        </div>
+        <div style="margin-top: 12px;">
+          <label style="font-size: 0.85rem; font-weight: 600;">特記事項・連絡メモ (自由記述)</label>
+          <textarea class="full-width-textarea nav-input" id="memo" placeholder="レギュラーが満タンを超えるため...など"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">💬 LINEを開いて送信する</button>
+  </form>
+
+  <div class="overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div>スプレッドシートへ書き込み中...</div>
+  </div>
+
+  <script>
+    // ★★★【ここに小倉SS用のWebアプリURLを貼り付けてください】★★★
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwLcSjTBxXsCXPOCCk4A2tSytHA0mStHn49va_7pP_gPQXHEvmxPkuBd5_hRnglW5VomQ/exec";
+
+    let currentTab = '8h';
+    let baseThisYear = { gas: 0, keiyu: 0, toyu: 0, oil: 0, wash: 0 };
+    let loadTimer = null;
+
+    function toggleLorryInput(type) {
+      if (type === 'today') {
+        const sel = document.getElementById("today_lorry_status").value;
+        document.getElementById("today_lorry_manual_box").classList.toggle("hidden", sel !== "manual");
+      } else {
+        const sel = document.getElementById("tom_lorry_status").value;
+        document.getElementById("tom_lorry_manual_box").classList.toggle("hidden", sel !== "manual");
+      }
+      refreshNavInputs();
+    }
+
+    window.setPrevData = function(res) {
+      if (loadTimer) clearTimeout(loadTimer);
+      const btn = document.getElementById("reloadBtn");
+      if (btn) btn.textContent = "🔄 最新に更新";
+
+      if (!res) return;
+      if (res.prev) {
+        document.getElementById("prev_hiok").value = res.prev.hiok || 0;
+        document.getElementById("prev_reg").value = res.prev.reg || 0;
+        document.getElementById("prev_keiyu").value = res.prev.keiyu || 0;
+        document.getElementById("prev_toyu").value = res.prev.toyu || 0;
+      }
+      if (res.thisYear) {
+        baseThisYear = {
+          gas: parseFloat(res.thisYear.gas) || 0,
+          keiyu: parseFloat(res.thisYear.keiyu) || 0,
+          toyu: parseFloat(res.thisYear.toyu) || 0,
+          oil: parseInt(res.thisYear.oil) || 0,
+          wash: parseInt(res.thisYear.wash) || 0
+        };
+        document.getElementById("ty_gas").value = res.thisYear.gas || 0;
+        document.getElementById("ty_keiyu").value = res.thisYear.keiyu || 0;
+        document.getElementById("ty_toyu").value = res.thisYear.toyu || 0;
+        document.getElementById("ty_oil").value = res.thisYear.oil || 0;
+        document.getElementById("ty_wash").value = res.thisYear.wash || 0;
+      }
+      if (res.lastYear) {
+        document.getElementById("ly_gas").value = res.lastYear.gas || 0;
+        document.getElementById("ly_keiyu").value = res.lastYear.keiyu || 0;
+        document.getElementById("ly_toyu").value = res.lastYear.toyu || 0;
+        document.getElementById("ly_oil").value = res.lastYear.oil || 0;
+        document.getElementById("ly_wash").value = res.lastYear.wash || 0;
+      }
+    };
+
+    function loadLatestData() {
+      if (GAS_URL.includes("YOUR_GAS_SCRIPT_ID")) return;
+      
+      const btn = document.getElementById("reloadBtn");
+      if (btn) btn.textContent = "⌛️ 読込中...";
+
+      const oldScript = document.getElementById("jsonp-data-script");
+      if (oldScript) oldScript.remove();
+
+      if (loadTimer) clearTimeout(loadTimer);
+      loadTimer = setTimeout(() => {
+        if (btn && btn.textContent === "⌛️ 読込中...") {
+          btn.textContent = "🔄 再試行";
+        }
+      }, 4000);
+
+      const script = document.createElement("script");
+      script.id = "jsonp-data-script";
+      const sep = GAS_URL.includes("?") ? "&" : "?";
+      script.src = GAS_URL + sep + "callback=setPrevData&_t=" + Date.now();
+      
+      script.onerror = function() {
+        if (btn) btn.textContent = "🔄 再試行";
+      };
+
+      document.body.appendChild(script);
+    }
+
+    function calcTotal() {
+      const todayGas = (parseFloat(v('cum_hiok')) || 0) + (parseFloat(v('cum_reg')) || 0);
+      const todayKeiyu = parseFloat(v('cum_keiyu')) || 0;
+      const todayToyu = parseFloat(v('cum_toyu')) || 0;
+      const todayOil = parseInt(v('cum_oil')) || 0;
+      const todayWash = parseInt(v('cum_wash')) || 0;
+
+      document.getElementById("ty_gas").value = (Math.round((baseThisYear.gas + todayGas) * 10) / 10) || 0;
+      document.getElementById("ty_keiyu").value = (Math.round((baseThisYear.keiyu + todayKeiyu) * 10) / 10) || 0;
+      document.getElementById("ty_toyu").value = (Math.round((baseThisYear.toyu + todayToyu) * 10) / 10) || 0;
+      document.getElementById("ty_oil").value = (baseThisYear.oil + todayOil) || 0;
+      document.getElementById("ty_wash").value = (baseThisYear.wash + todayWash) || 0;
+    }
+
+    document.querySelectorAll('.cum-calc').forEach(el => {
+      el.addEventListener('input', calcTotal);
+    });
+
+    let activeInputs = [];
+    function refreshNavInputs() {
+      activeInputs = Array.from(document.querySelectorAll('.nav-input'))
+        .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0);
+    }
+
+    document.getElementById("reportForm").addEventListener("keydown", function(e) {
+      if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+        e.preventDefault();
+        if (activeInputs.length === 0) refreshNavInputs();
+        
+        const idx = activeInputs.indexOf(e.target);
+        if (idx > -1 && idx < activeInputs.length - 1) {
+          activeInputs[idx + 1].focus();
+        } else {
+          e.target.blur();
+        }
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", function() {
+      refreshNavInputs();
+      loadLatestData();
+    });
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById("tab-8h").classList.toggle("active", tab === '8h');
+      document.getElementById("tab-15h").classList.toggle("active", tab === '15h');
+      document.getElementById("tab-month").classList.toggle("active", tab === 'month');
+
+      document.getElementById("section-8h").classList.toggle("hidden", tab !== '8h');
+      document.getElementById("section-15h").classList.toggle("hidden", tab === '8h');
+      document.getElementById("section-month-extra").classList.toggle("hidden", tab !== 'month');
+      document.getElementById("store-label").textContent = tab === 'month' ? "小倉SS月末" : "小倉SS";
+
+      setTimeout(refreshNavInputs, 50);
+    }
+
+    document.getElementById("reportForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      if (GAS_URL.includes("YOUR_GAS_SCRIPT_ID")) {
+        alert("エラー: GASのURLが設定されていません。");
+        return;
+      }
+
+      const overlay = document.getElementById("loadingOverlay");
+      const submitBtn = document.getElementById("submitBtn");
+
+      const reportTypeName = currentTab === '8h' ? "8時報告" : (currentTab === 'month' ? "15時月末報告" : "15時報告");
+
+      const prevHiok = document.getElementById("prev_hiok").value === '...' ? '0' : document.getElementById("prev_hiok").value;
+      const prevReg = document.getElementById("prev_reg").value === '...' ? '0' : document.getElementById("prev_reg").value;
+      const prevKeiyu = document.getElementById("prev_keiyu").value === '...' ? '0' : document.getElementById("prev_keiyu").value;
+      const prevToyu = document.getElementById("prev_toyu").value === '...' ? '0' : document.getElementById("prev_toyu").value;
+
+      const rawOther = document.getElementById("other_manual").value.trim();
+      const rawMemo = document.getElementById("memo").value.trim();
+
+      const todayLorrySel = document.getElementById("today_lorry_status").value;
+      const todayLorryVal = todayLorrySel === 'manual' ? (document.getElementById("today_lorry_manual").value.trim() || "本日のローリー入庫問題ありません。") : todayLorrySel;
+
+      const tomLorrySel = document.getElementById("tom_lorry_status").value;
+      const tomLorryVal = tomLorrySel === 'manual' ? (document.getElementById("tom_lorry_manual").value.trim() || "明日のローリー入庫問題ありません。") : tomLorrySel;
+
+      const payload = {
+        reportType: reportTypeName,
+        stock_hiok: v('stock_hiok'), stock_reg1: v('stock_reg1'), stock_keiyu: v('stock_keiyu'), stock_toyu: v('stock_toyu'),
+        m_sales_hiok: v('m_sales_hiok'), m_sales_reg: v('m_sales_reg'), m_sales_keiyu: v('m_sales_keiyu'), m_sales_toyu: v('m_sales_toyu'),
+        today_lorry_status: todayLorryVal,
+        prev_hiok: prevHiok, prev_reg: prevReg, prev_keiyu: prevKeiyu, prev_toyu: prevToyu,
+        cum_hiok: v('cum_hiok'), cum_reg: v('cum_reg'), cum_keiyu: v('cum_keiyu'), cum_toyu: v('cum_toyu'),
+        cum_oil: v('cum_oil'), cum_wash: v('cum_wash'), other_manual: rawOther,
+        stock15_hiok: v('stock15_hiok'), stock15_reg1: v('stock15_reg1'), stock15_keiyu: v('stock15_keiyu'), stock15_toyu: v('stock15_toyu'),
+        lorry_am_h: v('lorry_am_h'), lorry_am_r: v('lorry_am_r'), lorry_am_d: v('lorry_am_d'), lorry_am_k: v('lorry_am_k'),
+        lorry_pm_h: v('lorry_pm_h'), lorry_pm_r: v('lorry_pm_r'), lorry_pm_d: v('lorry_pm_d'), lorry_pm_k: v('lorry_pm_k'),
+        tom_lorry_status: tomLorryVal, memo: rawMemo
+      };
+
+      let lorryText = "";
+      if (v('lorry_am_h') !== '0' || v('lorry_am_r') !== '0' || v('lorry_am_d') !== '0' || v('lorry_am_k') !== '0' ||
+          v('lorry_pm_h') !== '0' || v('lorry_pm_r') !== '0' || v('lorry_pm_d') !== '0' || v('lorry_pm_k') !== '0') {
+        let parts = [];
+        if (v('lorry_am_h') !== '0') parts.push(`H ${v('lorry_am_h')}k`);
+        if (v('lorry_am_r') !== '0') parts.push(`R ${v('lorry_am_r')}k`);
+        if (v('lorry_am_d') !== '0') parts.push(`D ${v('lorry_am_d')}k`);
+        if (v('lorry_am_k') !== '0') parts.push(`K ${v('lorry_am_k')}k`);
+        if (v('lorry_pm_h') !== '0') parts.push(`(PM)H ${v('lorry_pm_h')}k`);
+        if (v('lorry_pm_r') !== '0') parts.push(`(PM)R ${v('lorry_pm_r')}k`);
+        if (v('lorry_pm_d') !== '0') parts.push(`(PM)D ${v('lorry_pm_d')}k`);
+        if (v('lorry_pm_k') !== '0') parts.push(`(PM)K ${v('lorry_pm_k')}k`);
+        lorryText = parts.join(" / ");
+      } else {
+        lorryText = "なし";
+      }
+
+      const otherPart = (rawOther !== "" && rawOther !== "0") ? `${rawOther}\n` : "";
+      const memoPart = (rawMemo !== "" && rawMemo !== "0") ? `\nメモ：${rawMemo}` : "";
+
+      let lineText = "";
+      if (currentTab === '8h') {
+        lineText = 
+`在庫ハイオク・：${v('stock_hiok')}
+在庫レギュラー：${v('stock_reg1')}
+在庫軽油・・・：${v('stock_keiyu')}
+在庫灯油・・・：${v('stock_toyu')}
+
+昨日ハイオク・：${prevHiok}
+昨日レギュラー：${prevReg}
+昨日軽油・・・：${prevKeiyu}
+昨日灯油・・・：${prevToyu}
+
+朝のハイオク・：${v('m_sales_hiok')}
+朝のレギュラー：${v('m_sales_reg')}
+朝の軽油・・・：${v('m_sales_keiyu')}
+朝の灯油・・・：${v('m_sales_toyu')}
+
+${todayLorryVal}`;
+
+      } else if (currentTab === '15h') {
+        lineText = 
+`ハイオク・・・：${v('cum_hiok')}
+レギュラー・・：${v('cum_reg')}
+軽油・・・・・：${v('cum_keiyu')}
+灯油・・・・・：${v('cum_toyu')}
+オイル・・・・：${v('cum_oil')} 台
+洗車・・・・・：${v('cum_wash')} 台
+${otherPart}在庫ハイオク・：${v('stock15_hiok')}
+在庫レギュラー：${v('stock15_reg1')}
+在庫軽油・・・：${v('stock15_keiyu')}
+在庫灯油・・・：${v('stock15_toyu')}
+
+明日のローリー
+${lorryText}
+
+${tomLorryVal}${memoPart}`;
+
+      } else {
+        const tyGas = document.getElementById("ty_gas").value || '0';
+        const tyKeiyu = document.getElementById("ty_keiyu").value || '0';
+        const tyToyu = document.getElementById("ty_toyu").value || '0';
+        const tyOil = document.getElementById("ty_oil").value || '0';
+        const tyWash = document.getElementById("ty_wash").value || '0';
+
+        const lyGas = document.getElementById("ly_gas").value || '0';
+        const lyKeiyu = document.getElementById("ly_keiyu").value || '0';
+        const lyToyu = document.getElementById("ly_toyu").value || '0';
+        const lyOil = document.getElementById("ly_oil").value || '0';
+        const lyWash = document.getElementById("ly_wash").value || '0';
+
+        lineText = 
+`ハイオク・・・：${v('cum_hiok')}
+レギュラー・・：${v('cum_reg')}
+軽油・・・・・：${v('cum_keiyu')}
+灯油・・・・・：${v('cum_toyu')}
+オイル・・・・：${v('cum_oil')} 台
+洗車・・・・・：${v('cum_wash')} 台
+${otherPart}在庫ハイオク・：${v('stock15_hiok')}
+在庫レギュラー：${v('stock15_reg1')}
+在庫軽油・・・：${v('stock15_keiyu')}
+在庫灯油・・・：${v('stock15_toyu')}
+
+今年の累計
+ガソリン・・：${tyGas}
+軽油・・・・：${tyKeiyu}
+灯油・・・・：${tyToyu}
+オイル・・・：${tyOil} 台
+洗車・・・・：${tyWash} 台
+
+去年の累計
+ガソリン・・：${lyGas}
+軽油・・・・：${lyKeiyu}
+灯油・・・・：${lyToyu}
+オイル・・・：${lyOil} 台
+洗車・・・・：${lyWash} 台
+
+明日のローリー
+${lorryText}
+
+${tomLorryVal}${memoPart}`;
+      }
+
+      overlay.style.display = "flex";
+      submitBtn.disabled = true;
+
+      fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      })
+      .then(() => {
+        overlay.style.display = "none";
+        submitBtn.disabled = false;
+
+        document.getElementById("reportForm").reset();
+        document.getElementById("today_lorry_manual_box").classList.add("hidden");
+        document.getElementById("tom_lorry_manual_box").classList.add("hidden");
+        calcTotal();
+
+        loadLatestData();
+
+        window.location.href = "line://msg/text/" + encodeURIComponent(lineText);
+      })
+      .catch(err => {
+        overlay.style.display = "none";
+        submitBtn.disabled = false;
+        alert("送信失敗: 電波状況を確認してください。");
+      });
+    });
+
+    function v(id) {
+      const el = document.getElementById(id);
+      return el ? (el.value || '0') : '0';
+    }
+  </script>
+</body>
+</html>
