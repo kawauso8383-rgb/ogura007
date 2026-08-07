@@ -204,7 +204,6 @@
   </div>
 
   <script>
-    // ★小倉SS用 GASデプロイURL設定済み
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwLcSjTBxXsCXPOCCk4A2tSytHA0mStHn49va_7pP_gPQXHEvmxPkuBd5_hRnglW5VomQ/exec";
 
     let currentTab = '8h';
@@ -355,8 +354,8 @@
         reportTypeName = "15時月末報告";
       }
 
-      // ★店舗名ヘッダーの取得
-      const storeName = document.getElementById("store-label").textContent;
+      // ★店舗名を固定文字列で直接指定（要素取得の不具合を回避）
+      const storeName = (currentTab === 'month') ? "小倉SS月末" : "小倉SS";
 
       const fmt = (id) => {
         const val = parseFloat(v(id));
